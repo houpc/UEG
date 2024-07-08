@@ -5,7 +5,10 @@ using Measurements
 dim = 3
 spin = 2
 # rs = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
-rs = [2.0,]
+# rs = [1.0,]
+# rs = [2.0,]
+# rs = [3.0,]
+rs = [4.0,]
 # rs = [1.0, 2.0, 3.0, 4.0]
 # Fs = -[0.223, 0.380, 0.516, 0.639, 0.752]
 # Fs = -[0.223,]
@@ -14,7 +17,10 @@ rs = [2.0,]
 # mass2 = [1.0, 2.0, 3.0, 4.0, 5.0]
 # mass2 = [9.0, 13.0, 19.0, 27.0]
 # mass2 = [1e-3,]
-mass2 = [2.0,]
+# mass2 = [3.5,]
+# mass2 = [2.0,]
+# mass2 = [1.5,]
+mass2 = [1.0,]
 # mass2 = [2.44355,]
 # mass2 = [1.22177,]
 # mass2 = [0.814516,]
@@ -23,10 +29,10 @@ mass2 = [2.0,]
 # mass2 = [3.5,]
 # Fs = [-0.0,]
 Fs = -0.0 .* rs
-# beta = [50,]
-beta = [100.0]
-order = [5,]
-# order = [2,]
+beta = [50,]
+# beta = [25.0, 50.0, 100.0]
+# order = [5, 6,]
+order = [6,]
 Nl = 1
 # isDynamic = true
 isDynamic = false
@@ -37,21 +43,24 @@ isFock = false
 # dmstar = -[(i == 0 ? 1.0 : mstar[i]) - mstar[i+1] for i in 0:length(mstar)-1]
 # dmstar = dmstar .* 0.0
 # 1.0
-dmstar = [0.965154 ± 3.5e-5 - 1.0, -0.012734 ± 2.6e-5, -0.003684 ± 2.6e-5, -1.7e-5 ± 3.3e-5, 0.000808 ± 5.4e-5]
+# dmstar = [0.965154 ± 3.5e-5 - 1.0, -0.012734 ± 2.6e-5, -0.003684 ± 2.6e-5, -1.7e-5 ± 3.3e-5, 0.000808 ± 5.4e-5]
 # 2.0
-dmstar = [0.971212 ± 3.6e-5 - 1.0, -0.013191 ± 3.4e-5, -0.006643 ± 3.8e-5, -0.00133 ± 5.3e-5, 0.00119 ± 0.0001]
+# dmstar = [0.971212 ± 3.6e-5 - 1.0, -0.013191 ± 3.4e-5, -0.006643 ± 3.8e-5, -0.00133 ± 5.3e-5, 0.00119 ± 0.0001]
 # 3.0
 # dmstar = [0.978121 ± 3.4e-5 - 1.0, -0.01011 ± 3.3e-5, -0.007079 ± 3.8e-5, -0.002236 ± 5.7e-5, 0.00094 ± 0.00012]
 # 4.0
-# dmstar = [0.977115 ± 3.9e-5 - 1.0, -0.006129 ± 3.9e-5, -0.005259 ± 5.1e-5, 0.000533 ± 9.1e-5, 0.00322 ± 0.00024]
+dmstar = [0.977115 ± 3.9e-5 - 1.0, -0.006129 ± 3.9e-5, -0.005259 ± 5.1e-5, 0.000533 ± 9.1e-5, 0.00322 ± 0.00024]
 mstar = [1.0 + sum(dmstar[1:i]) for i in 1:length(dmstar)]
 
 const parafilename = "para_wn_1minus0.csv"
 # const filename = "data_ver4PP_profile.jld2"
 # const filename = "data_ver4PP_new.jld2"
-const filename = "data_ver4PP_parqAD.jld2"
-# const filename = "data_ver4PP_parqAD_rs1.jld2"
-# const filename = "data_ver4PP_parqAD_rs1_v5.jld2"
+# const filename = "data_ver4PP_parqAD.jld2"
+# const filename = "data_ver4PP_parqAD_rs2.jld2"
+# const filename = "data_ver4PP_parqAD_rs3.jld2"
+const filename = "data_ver4PP_parqAD_rs4.jld2"
+# const filename = "data_ver4PP_parqAD_rs1_correctn.jld2"
+# const filename = "data_ver4PP_parqAD_rs1_v2.jld2"
 # const filename = "data_ver4PP_parqAD_sugon.jld2"
 # const filename = "data_ver4PP_parqAD_newsamp.jld2"
 # const filename = "data_ver4PP_parqAD_newsamp_l10.jld2"
