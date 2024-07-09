@@ -21,18 +21,18 @@ function ver3_renormalization(para, filename, dz, dmu)
     vud = Dict()
 
     key = UEG.short(para)
-    kamp, kamp2, anglegrid, ver3 = f[key]
+    kin, nkin, qout, nqout, ver3 = f[key]
 
     for p in keys(ver3)
         println(p)
         if haskey(vuu, p) == false
-            vuu[p] = MeshArray(kamp, anglegrid; dtype=Complex{Measurement{Float64}})
-            vud[p] = MeshArray(kamp, anglegrid; dtype=Complex{Measurement{Float64}})
+            vuu[p] = MeshArray(kin, nkin, qout, nqout; dtype=Complex{Measurement{Float64}})
+            vud[p] = MeshArray(kin, nkin, qout, nqout; dtype=Complex{Measurement{Float64}})
             # vuu[p] = MeshArray(1, anglegrid; dtype=Complex{Measurement{Float64}})
             # vud[p] = MeshArray(1, anglegrid; dtype=Complex{Measurement{Float64}})
         end
-        vuu[p][:, :] = ver3[p][1, :, :, 1, 1]
-        vud[p][:, :] = ver3[p][2, :, :, 1, 1]
+        vuu[p][:, :, :, :] = ver3[p][1, :, :, :, :]
+        vud[p][:, :, :, :] = ver3[p][2, :, :, :, :]
     end
 
     vuu_renorm = [vuu[(1, 0, 0)],]
