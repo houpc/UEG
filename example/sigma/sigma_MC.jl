@@ -2,30 +2,30 @@ using ElectronLiquid
 using CompositeGrids
 
 dim = 3
-rs = [4.0,]
+rs = [5.0,]
 # rs = [1.0, 2.0, 3.0]
 # rs = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
 # rs = [1.0, 2.0, 3.0, 4.0, 5.0]
 # Fs = -[0.223, 0.380, 0.516, 0.639, 0.752]
 # Fs = -[0.223,]
 # mass2 = [1.0, 2.0, 3.0]
-mass2 = [1e-3,]
-# mass2 = [5.0,]
+# mass2 = [1e-3,]
+mass2 = [0.5,]
 # mass2 = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0]
 # mass2 = [4.0, 5.0, 6.0]
 # mass2 = [1.0, 2.0, 3.0, 4.0, 5.0]
 # mass2 = [6.0, 8.0, 10.0, 12.0, 14.0]
 # mass2 = [10.5, 11.0]
 Fs = [-0.0,]
-beta = [100.0,]
-order = [2,]
-neval = 1e6
-# neval = 1e8
-isDynamic = true
-# isDynamic = false
+beta = [25.0,]
+order = [4,]
+# neval = 1e6
+neval = 1e7
+# isDynamic = true
+isDynamic = false
 isFock = false
-# diagGenerate = :GV
-diagGenerate = :Parquet
+diagGenerate = :GV
+# diagGenerate = :Parquet
 
 # mission = :Z
 # mission = :K
@@ -60,8 +60,8 @@ for (irs, _mass2, _beta, _order) in Iterators.product([i for i in 1:length(rs)],
     filename = "data_$(mission)_test.jld2"
     # filename = "data$(dim)_$(mission).jld2"
 
-    sigma, result = Sigma.MC(para; kgrid=kgrid, ngrid=ngrid,
-        neval=neval, filename=filename,
-        diagtype=diagGenerate)
+    sigma, result = Sigma.MC_dk(para; kgrid=kgrid, ngrid=ngrid,
+        neval=neval, filename=filename)
+    # diagtype=diagGenerate)
 
 end
