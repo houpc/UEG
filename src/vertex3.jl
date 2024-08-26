@@ -18,9 +18,18 @@ function getVer3(para, filename; parafile="para_wn_1minus0.csv", root_dir=@__DIR
             println("error caught")
             # if isa(e, LoadError)
             println("sigma data for order=$(para.order) not found, trying higher order")
-            para1 = UEG.ParaMC(rs=para.rs, beta=para.beta, Fs=para.Fs, Fa=-0.0, order=para.order + 1, dim=para.dim,
-                mass2=para.mass2, isDynamic=para.isDynamic, isFock=para.isFock)
-            _mu, _zinv = CounterTerm.getSigma(para1, parafile=parafile, root_dir=root_dir)
+            try
+                para1 = UEG.ParaMC(rs=para.rs, beta=para.beta, Fs=para.Fs, Fa=-0.0, order=para.order + 1, dim=para.dim,
+                    mass2=para.mass2, isDynamic=para.isDynamic, isFock=para.isFock)
+                _mu, _zinv = CounterTerm.getSigma(para1, parafile=parafile, root_dir=root_dir)
+            catch e
+                println("error caught")
+                # if isa(e, LoadError)
+                println("sigma data for order=$(para.order+1) not found, trying higher order")
+                para1 = UEG.ParaMC(rs=para.rs, beta=para.beta, Fs=para.Fs, Fa=-0.0, order=para.order + 2, dim=para.dim,
+                    mass2=para.mass2, isDynamic=para.isDynamic, isFock=para.isFock)
+                _mu, _zinv = CounterTerm.getSigma(para1, parafile=parafile, root_dir=root_dir)
+            end
         end
         println("end loading order=$(para.order)")
         # end

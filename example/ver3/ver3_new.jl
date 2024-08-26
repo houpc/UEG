@@ -15,9 +15,9 @@ mass2 = [3.5,]
 # Fs = [-0.0,]
 Fs = -0.0 .* rs
 beta = [25.0]
-order = [4,]
+order = [3,]
 # neval = 1e9
-neval = 1e7
+neval = 1e6
 # isDynamic = true
 isDynamic = false
 isFock = false
@@ -43,7 +43,7 @@ for (irs, _mass2, _beta, _order) in Iterators.product([i for i in 1:length(rs)],
     neighbor = UEG.neighbor(partition)
     reweight_goal = Float64[]
     for (order, sOrder, vOrder) in partition
-        order == 1 && sOrder > 0 && continue
+        # order == 1 && sOrder > 0 && continue
         push!(reweight_goal, 2.0^(2order + sOrder + vOrder - 2))
     end
     push!(reweight_goal, 4.0)
@@ -54,6 +54,7 @@ for (irs, _mass2, _beta, _order) in Iterators.product([i for i in 1:length(rs)],
     ver3, result = Ver3.MC_KW_angle(para;
         qout=qout, nkin=nkin, nqout=nqout,
         neval=neval, filename=filename, partition=partition,
-        filter=[NoHartree, Proper], transferLoop=transferLoop)
+        filter=[NoHartree, Proper], transferLoop=transferLoop,
+        reweight_goal=reweight_goal)
 
 end
