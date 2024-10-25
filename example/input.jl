@@ -1,7 +1,7 @@
 # Use finalized lambda scans to determine mass2 for maximum orders N = 4, 5, 6
 include("lambda_scans.jl")
 dim = 3      # dimension of the problem
-rs = [2.0]
+rs = [4.0]
 order = [6]                         # maximum diagram order for Σ diagrams (K and dK missions)
 mass2 = rs_to_lambdas[dim][order[1]][rs[1]]
 
@@ -23,7 +23,7 @@ println("rs = $rs, mass2 = $mass2, order = $order, neval = $neval")
 
 # Build file base names
 basenames = [
-    # "meff_$(dim)d",
+    "meff_$(dim)d",
     # "inverse_meff_$(dim)d",
     # "dispersion_ratio_$(dim)d",
     # "inverse_dispersion_ratio_$(dim)d",
@@ -51,7 +51,7 @@ for i in eachindex(basenames)
         basenames[i] *= "_layered2d"
     end
 end
-# meff_basename,
+meff_basename,
 # inverse_meff_basename,
 # dispersion_ratio_basename,
 # inverse_dispersion_ratio_basename,
@@ -73,7 +73,7 @@ res_directory = joinpath(@__DIR__, "sigma")
 para_directory = ""  # src directory
 
 # # Old file paths (no AD for k derivative)
-# const meff_filename = joinpath(res_directory, meff_basename * ".dat")
+const meff_filename = joinpath(res_directory, meff_basename * ".dat")
 # const inverse_meff_filename = joinpath(res_directory, inverse_meff_basename * ".dat")
 # const dispersion_ratio_filename = joinpath(res_directory, dispersion_ratio_basename * ".dat")
 # const inverse_dispersion_ratio_filename = joinpath(res_directory, inverse_dispersion_ratio_basename * ".dat")

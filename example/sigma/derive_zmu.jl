@@ -47,9 +47,9 @@ if abspath(PROGRAM_FILE) == @__FILE__
             end
         end
     end
-    if isSave
-        open(zfactor_filename, "a+") do io
-            writedlm(io, results)
-        end
-    end
+    # if isSave
+    #     open(zfactor_filename, "a+") do io
+    #         writedlm(io, results)
+    #     end
+    # end
 end

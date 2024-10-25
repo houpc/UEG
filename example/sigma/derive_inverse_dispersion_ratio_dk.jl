@@ -11,20 +11,24 @@ if abspath(PROGRAM_FILE) == @__FILE__
     end
 
     f = jldopen(sigma_dk_filename, "r")
-    # f = jldopen(sigma_k_filename, "r")
     results = Any[]
     for (_rs, _mass2, _F, _beta, _order) in Iterators.product(rs, mass2, Fs, beta, order)
         para = ParaMC(rs=_rs, beta=_beta, Fs=_F, order=_order, mass2=_mass2, isDynamic=isDynamic, dim=dim, spin=spin)
-        try
-            dmu = UniElectronGas.getdmu(para; parafile=parafilename)
-            push!(results, Any[_rs, _beta, _mass2, _order, dmu...])
-        catch
-            println("No dmu data found for key $(UEG.short(para)) in CSV file $(parafilename)!")
+        kF = para.kF
+        for key in keys(f)
+            loadpara = ParaMC(key)
+            if UEG.paraid(loadpara) == UEG.paraid(para)
+                println(UEG.paraid(para))
+
+                ngrid, kgrid, rSw_k, iSw_k = UniElectronGas.get_dSigmadk(para, sigma_dk_filename; parafile=parafilename)
+                inverse_dispersion_ratio = UniElectronGas.getDispersionRatioInv(para, [rSw_k[i][1] for i in eachindex(rSw_k)]; parafile=parafilename)
+                println("ϵ_0 / ϵ_qp = ", inverse_dispersion_ratio)
+                push!(results, Any[_rs, _beta, _mass2, _order, inverse_dispersion_ratio...])
+            end
         end
     end
     if isSave
-        println(chemical_potential_filename)
-        open(chemical_potential_filename, "a+") do io
+        open(inverse_dispersion_ratio_dk_filename, "a+") do io
             writedlm(io, results)
         end
     end

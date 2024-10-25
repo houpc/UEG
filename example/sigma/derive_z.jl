@@ -20,9 +20,9 @@ if abspath(PROGRAM_FILE) == @__FILE__
             loadpara = ParaMC(key)
             if UEG.paraid(loadpara) == UEG.paraid(para)
                 println(UEG.paraid(para))
-                zinv = UniElectronGas.getZfactor(para; parafile=parafilename, isRenorm=false)
-                println("1/z = ", zinv)
-                push!(results, Any[_rs, _beta, _mass2, _order, zinv...])
+                z = UniElectronGas.getZfactor(para; parafile=parafilename, isRenorm=false)
+                println("z = ", z)
+                push!(results, Any[_rs, _beta, _mass2, _order, z...])
             end
         end
     end
