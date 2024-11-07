@@ -4,10 +4,11 @@ dim = 3      # dimension of the problem
 rs = [4.0]
 order = [6]                         # maximum diagram order for Σ diagrams (K and dK missions)
 mass2 = rs_to_lambdas[dim][order[1]][rs[1]]
+#mass2 = [3.5]
 
 Fs = [-0.0]        # Fermi liquid parameter with zero angular momentum
 beta = [40.0]      # inverse temperature beta = β*E_F 
-neval = 4e11       # number of Monte Carlo samples
+neval = 1e10       # number of Monte Carlo samples
 isDynamic = false  # whether to use effective field theory with dynamic screening or not 
 isFock = false     # whether to use Fock renormalization or not
 

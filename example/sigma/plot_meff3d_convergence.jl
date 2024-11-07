@@ -49,14 +49,13 @@ end
 
 # Fixed lambda optima, rₛ ↦ λ*(rₛ), d = 3
 const fixed_lambda_optima_3d = Dict(
-    0.5 => 3.5,
+    # 0.5 => 3.5,
     1.0 => 5.0,
     2.0 => 3.0,
-    3.0 => 1.5,
-    4.0 => 1.25,
-    # 4.0 => 1.125,
-    5.0 => 1.125,
-    6.0 => 1.0,
+    3.0 => 1.875,
+    4.0 => 1.625,
+    5.0 => 1.25,
+    # 6.0 => 1.0,
 )
 
 # For combined plot, rₛ ↦ λ*(rₛ), d = 3
@@ -91,7 +90,7 @@ const lambdas_meff_convergence_plot_3d = Dict(
     3.0 => [1.5, 1.75, 1.875, 2.0, 2.25],
     # 3.0 => [1.5, 1.75, 1.875, 2.0, 2.25],
     # 4.0 => [1.25, 1.5, 1.75, 2.0],
-    4.0 => [1.25, 1.5, 1.625, 1.75],
+    4.0 => [1.25, 1.375, 1.5, 1.625, 1.75],
     # 4.0 => [1.125, 1.5],
     # 5.0 => [1.125, 0.875],
     5.0 => [1.125, 1.25, 1.375, 1.5],
@@ -539,21 +538,7 @@ function plot_meff_order_convergence(;
             x = collect(eachindex(valid_means))
             yval = valid_means
             yerr = valid_errors
-            starstr = ""
-            if j == optimal_lambda_indices_3d[rs]
-                starstr = "^*"
-                # error bar covers last three orders
-                d1 = abs(yval[end] - yval[end-1])
-                d2 = abs(yval[end] - yval[end-2])
-                error_estimate = yerr[end] + max(d1, d2)
-                meff_estimate = measurement(yval[end], error_estimate)
-                axhspan(
-                    yval[end] - error_estimate,
-                    yval[end] + error_estimate;
-                    color=color[j+1],
-                    alpha=0.2,
-                )
-            end
+            # starstr = j == 1 ? "^*" : ""
             errorbar(
                 x,
                 yval,
@@ -561,8 +546,8 @@ function plot_meff_order_convergence(;
                 color=color[j+1],
                 capsize=4,
                 fmt="o--",
-                # label="\$\\lambda = $lambda\$",
-                label="\$\\lambda$starstr = $lambda\$",
+                label="\$\\lambda = $lambda\$",
+                # label="\$\\lambda$starstr = $lambda\$",
                 zorder=10 * j,
             )
             # # Rough estimate of total error using the last 3 orders
@@ -589,7 +574,7 @@ function plot_meff_order_convergence(;
             ylabel("\$m^* / m\$")
         end
         # legend(; title="\$r_s = $(rs)\$", loc="best")
-        legend(; title="\$r_s = $(rs)\$", loc="best", fontsize=12)
+        legend(; title="\$r_s = $(rs)\$", loc="best", fontsize=14)
     end
     # ylim(0.963, 1.003)
     # ylim(0.978, 1.002)
@@ -630,22 +615,37 @@ function plot_combined_order_convergence(;
     figure(figsize=(4 * num_rs, 4))
     for (i, rs) in enumerate(plot_rs)
         subplot(1, num_rs, i)
-        # Plot fixed lambda curve
+        # Plot large fixed lambda curve
         fixed_lambda = fixed_lambda_comparisons_3d[rs]
         means, errors, fixed_lambda = load_from_dlm(meff_dk_filename, fixed_lambda; rs=rs)
         valid_means = collect(skipmissing(means))
         valid_errors = collect(skipmissing(errors))
         x = collect(eachindex(valid_means))
         yval_hi = valid_means
-        yerr = valid_errors
+        yerr_hi = valid_errors
         errorbar(
             x,
             yval_hi,
-            yerr=yerr,
+            yerr=yerr_hi,
             color=cdict["red"],
             capsize=4,
             fmt="o--",
             label="\$\\lambda = $fixed_lambda\$",
+        )
+
+        # Plot fixed lambda optimum curve
+        optimal_lambda = fixed_lambda_optima_3d[rs]
+        means, errors, optimal_lambda = load_from_dlm(meff_dk_filename, optimal_lambda; rs=rs)
+        valid_means = collect(skipmissing(means))
+        valid_errors = collect(skipmissing(errors))
+        errorbar(
+            eachindex(valid_means),
+            valid_means,
+            yerr=valid_errors,
+            color=cdict["teal"],
+            capsize=4,
+            fmt="o--",
+            label="\$\\lambda^* = $optimal_lambda\$",
         )
 
         # The full set of mass2 values for this rs
@@ -712,8 +712,9 @@ function plot_combined_order_convergence(;
         # Extrapolate to infinite order using upper and lower bounds
         meff_min = yval_lo[end]
         meff_max = yval_hi[end]
-        meff_mean = (meff_min + meff_max) / 2
-        meff_err = (meff_max - meff_min)
+        # meff_mean = (meff_min + meff_max) / 2
+        meff_mean = meff_min
+        meff_err = (meff_max - meff_min) + yerr[end] + yerr_hi[end]
         meff_estimate = measurement(meff_mean, meff_err)
         println("rs = $rs:\tm*/m ≈ $meff_estimate")
 
@@ -735,7 +736,7 @@ function plot_combined_order_convergence(;
         xticks(collect(1:order[1]))
         xlabel("Perturbation order \$N\$")
         ylabel("\$m^* / m\$")
-        legend(; title="\$r_s = $(rs)\$", loc="upper right", fontsize=14)
+        legend(; title="\$r_s = $(rs)\$", loc="upper right", fontsize=12)
     end
     tight_layout()
     savefig("meff$(dim)d_rs$(plot_rs)_beta$(beta)$(modestr)_minimal_sensitivity_vs_N.pdf")
@@ -920,7 +921,7 @@ if abspath(PROGRAM_FILE) == @__FILE__
     # plot_meff_order_convergence_minimal_sensitivity(plot_rs=[1.0, 2.0])
     # plot_meff_order_convergence_minimal_sensitivity(plot_rs=[1.0, 2.0, 3.0, 4.0])
 
-    plot_meff_order_convergence(plot_rs=[1.0, 2.0, 3.0, 4.0, 5.0])
+    # plot_meff_order_convergence(plot_rs=[1.0, 2.0, 3.0, 4.0, 5.0])
     # plot_meff_order_convergence(plot_rs=[3.0])
     # plot_meff_order_convergence(plot_rs=[1.0, 2.0, 6.0])
     # plot_meff_order_convergence(plot_rs=[0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0])

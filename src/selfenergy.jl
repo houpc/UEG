@@ -267,7 +267,7 @@ function getMeffInv(para, rSigmadk; parafile="para_wn_1minus0.csv", root_dir=@__
     dispersion_ratio = Taylor1([1.0, dMeffinv...], order)
     println("1 + (m / kF) dReΣ / dK = ", dispersion_ratio)
 
-    MeffInv = zfactor * dispersion_ratio
+    MeffInv = dispersion_ratio / zinv
     dMeffInv = [getcoeff(MeffInv, o) for o in 1:order]
 
     sumMeffInv = accumulate(+, dMeffInv)
