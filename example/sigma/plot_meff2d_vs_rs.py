@@ -111,12 +111,12 @@ def main():
     m_VDMC_err = [0, 0.0010, 0.001, 0.002, 0.004]
     rs_VDMC = [0, 0.1, 0.3, 0.5, 1]
 
-    rs_DMC = [0, 1, 2, 3, 4, 5]
-    m_DMC = [1.0, 0.918, 0.879, 0.856, 0.842, 0.791]
-    m_DMC_err = [0, 0.006, 0.014, 0.014, 0.017, 0.01]
+    rs_DMC = [1, 2, 3, 4, 5]
+    m_DMC = [0.918, 0.879, 0.856, 0.842, 0.791]
+    m_DMC_err = [0.006, 0.014, 0.014, 0.017, 0.01]
 
-    # f_sigma_G0W0 = np.load("finalized_meff_results/meff_2d_sigma_G0W0_large_rs.npz")
-    f_sigma_G0W0 = np.load("finalized_meff_results/meff_2d_sigma_G0W0.npz")
+    # f_sigma_G0W0 = np.load("finalized_meff_results/2d/rpa/meff_2d_sigma_G0W0_large_rs.npz")
+    f_sigma_G0W0 = np.load("finalized_meff_results/2d/rpa/meff_2d_sigma_G0W0.npz")
     rs_G0W0 = f_sigma_G0W0["rslist"]
     m_G0W0 = f_sigma_G0W0["mefflist"]
 
@@ -141,7 +141,7 @@ def main():
     print(meff_HDL)
 
     # RPA
-    handle1 = plot_mvsrs(rs_G0W0, m_G0W0, 2, r"RPA", '--', ax=ax)
+    handle1 = plot_mvsrs(rs_G0W0, m_G0W0, 7, r"RPA", '--', ax=ax)
     # handle1 = plot_mvsrs(rs_G0W0, m_G0W0, 2, r"RPA", '--', ax=ax, zorder=10000)
 
     # High-density limit
@@ -186,14 +186,15 @@ def main():
                    6, r"NCT $(N_e = 57)$ [14]", ax=ax)
 
     print("\nPlotting our data")
-    handle6 = errorbar_mvsrs(rs_VDMC, m_VDMC, m_VDMC_err,
+    handle6 = errorbar_mvsrs(rs_VDMC[1:None], m_VDMC[1:None], m_VDMC_err[1:None],
                    5, "This work", zorder=30, ax=ax)
     # plot_mvsrs(rs_VDMC, m_VDMC, 5, "", '-', ax=ax)
     plot_mvsrs(rs_VDMC, m_VDMC, 5, "", '-', rs_HDL=rs_HDL, meff_HDL=meff_HDL, ax=ax)
 
     ax.set_xlabel(r"$r_s$")
     ax.set_ylabel(r"$m^*/m$")
-    ax.annotate(r"2D", xy=(0.875, 0.9), xycoords="axes fraction")
+    ax.annotate(r"2D", xy=(0.06, 0.9), xycoords="axes fraction")
+    # ax.annotate(r"2D", xy=(0.875, 0.9), xycoords="axes fraction")
 
     # ax.set_xlim(0, 0.25)
     ax.set_xlim(0, 1.05)
@@ -208,12 +209,12 @@ def main():
     # ax.set_ylim(0.765, 1.135)
 
     # Assemble legends
-    l1_handles = [handle1]
+    # l1_handles = [handle1]
     # l1_handles = [handle1, handle2]
-    l2_handles = [handle3, handle4, handle5, handle6]
-    top_legend = plt.legend(handles=l1_handles, loc="upper left", fontsize=14)
+    l2_handles = [handle1, handle3, handle4, handle5, handle6]
+    # top_legend = plt.legend(handles=l1_handles, loc="upper left", fontsize=14)
     bottom_legend = plt.legend(handles=l2_handles, loc="lower left", fontsize=14)
-    ax.add_artist(top_legend)
+    # ax.add_artist(top_legend)
     ax.add_artist(bottom_legend)
 
     # Save the figure

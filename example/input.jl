@@ -1,10 +1,10 @@
 # Use finalized lambda scans to determine mass2 for maximum orders N = 4, 5, 6
 include("lambda_scans.jl")
 dim = 3      # dimension of the problem
-rs = [4.0]
+rs = [1.0]
 order = [6]                         # maximum diagram order for Σ diagrams (K and dK missions)
-mass2 = rs_to_lambdas[dim][order[1]][rs[1]]
-#mass2 = [3.5]
+# mass2 = rs_to_lambdas[dim][order[1]][rs[1]]
+mass2 = [3.5]
 
 Fs = [-0.0]        # Fermi liquid parameter with zero angular momentum
 beta = [40.0]      # inverse temperature beta = β*E_F 

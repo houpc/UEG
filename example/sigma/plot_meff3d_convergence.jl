@@ -83,7 +83,7 @@ const lambdas_meff_convergence_plot_3d = Dict(
     # 1.0 => [1.75, 2.0],
     # 1.0 => [5.0],
     # 1.0 => [5.0, 1.75, 8.0],
-    1.0 => [1.75, 5.0, 6.5, 8.0],
+    1.0 => [3.5, 5.0, 6.5, 8.0],
     # 1.0 => [5.0, 4.0, 6.0, 6.5, 8.0],
     2.0 => [2.0, 2.5, 3.0, 3.5],
     # 3.0 => [1.5, 1.75, 2.0, 2.5],
@@ -280,10 +280,9 @@ function load_from_dlm(filename; mass2=mass2, rs=rs[1], beta=beta[1], sortby="or
     end
 end
 
-function plot_all_order_convergence(; beta=beta[1])
-    # plot_rs = [1.0, 6.0]
-    # plot_rs = [1.0, 5.0]
-    plot_rs = [1.0, 2.0]
+function plot_all_order_convergence(meff_estimates; beta=beta[1])
+    plot_rs = [1.0, 5.0]
+    # plot_rs = [1.0, 2.0]
     num_rs = length(plot_rs)
     @assert num_rs == 2 "plot_rs must be a 2-element array"
     plot_lambda = [fixed_lambda_optima_3d[rs] for rs in plot_rs]
@@ -352,17 +351,24 @@ function plot_all_order_convergence(; beta=beta[1])
                 ax.annotate(labels[j], xy=label_locs[j], xycoords="data")
             end
             if j == 3
-                # Rough estimate of total error using the last 3 orders
-                d1 = abs(yval[end] - yval[end-1])
-                d2 = abs(yval[end] - yval[end-2])
-                error_estimate = yerr[end] + max(d1, d2)
-                meff_estimate = measurement(yval[end], error_estimate)
+                # Error in final m/m* estimate is obtained from combined approaches
+                error_estimate = (1 / meff_estimates[rs]).err
                 ax.axhspan(
                     yval[end] - error_estimate,
                     yval[end] + error_estimate;
                     color=cdict["grey"],
                 )
+                # # Rough estimate of total error using the last 3 orders
+                # d1 = abs(yval[end] - yval[end-1])
+                # d2 = abs(yval[end] - yval[end-2])
+                # error_estimate = yerr[end] + max(d1, d2)
+                # ax.axhspan(
+                #     yval[end] - error_estimate,
+                #     yval[end] + error_estimate;
+                #     color=cdict["grey"],
+                # )
                 ax.axhline(yval[end]; linestyle="--", color="dimgrey")
+                meff_estimate = measurement(yval[end], error_estimate)
                 println("rs = $rs, λ = $lambda:\tm/m* ≈ $meff_estimate")
             end
         end
@@ -539,6 +545,7 @@ function plot_meff_order_convergence(;
             yval = valid_means
             yerr = valid_errors
             # starstr = j == 1 ? "^*" : ""
+            starstr = lambda == fixed_lambda_optima_3d[rs] ? "^*" : ""
             errorbar(
                 x,
                 yval,
@@ -546,8 +553,8 @@ function plot_meff_order_convergence(;
                 color=color[j+1],
                 capsize=4,
                 fmt="o--",
-                label="\$\\lambda = $lambda\$",
-                # label="\$\\lambda$starstr = $lambda\$",
+                # label="\$\\lambda = $lambda\$",
+                label="\$\\lambda$starstr = $lambda\$",
                 zorder=10 * j,
             )
             # # Rough estimate of total error using the last 3 orders
@@ -587,6 +594,7 @@ function plot_combined_order_convergence(;
     maxOrder=order[1],
     plot_rs=range(1.0, 6.0),
 )
+    meff_estimates = Dict()
     ylimits = Dict(
         1.0 => 0.938,
         2.0 => 0.938,
@@ -596,7 +604,7 @@ function plot_combined_order_convergence(;
         6.0 => 0.972,
     )
     pick_extrema = Dict(
-        1.0 => [missing, 1, 2, 1, 8, 1],
+        1.0 => [missing, 1, 2, 1, 4, 1],
         2.0 => [missing, 1, 2, 1, 2, 1],
         3.0 => [missing, missing, 1, 1, 1, 1],
         4.0 => [missing, 1, 1, 1, 1, 1],
@@ -718,6 +726,9 @@ function plot_combined_order_convergence(;
         meff_estimate = measurement(meff_mean, meff_err)
         println("rs = $rs:\tm*/m ≈ $meff_estimate")
 
+        # Add meff estimate at this rs to dictionary
+        meff_estimates[rs] = meff_estimate
+
         # Rough estimate of total error using the last 2 orders from hi plus statistical error
         error_estimate_hi = yerr[end] + abs(yval_hi[end] - yval_hi[end-1])
         meff_estimate_hi = measurement(yval_hi[end], error_estimate_hi)
@@ -740,6 +751,7 @@ function plot_combined_order_convergence(;
     end
     tight_layout()
     savefig("meff$(dim)d_rs$(plot_rs)_beta$(beta)$(modestr)_minimal_sensitivity_vs_N.pdf")
+    return meff_estimates
 end
 
 function plot_meff_lambda_convergence(maxOrder=order[1]; rs=rs[1], beta=beta[1])
@@ -912,17 +924,12 @@ function plot_meff_lambda_convergence(maxOrder=order[1]; rs=rs[1], beta=beta[1])
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
-    # plot_all_order_convergence()
+    meff_estimates = plot_combined_order_convergence(plot_rs=[1.0, 2.0, 3.0, 4.0, 5.0])
+    plot_meff_order_convergence(plot_rs=[1.0, 2.0, 3.0, 4.0, 5.0])
+    plot_all_order_convergence(meff_estimates)
     plot_meff_lambda_convergence()
-    plot_combined_order_convergence(plot_rs=[1.0, 2.0, 3.0, 4.0, 5.0])
-
-    # plot_meff_order_convergence()
-    # plot_meff_order_convergence(plot_rs=rs)
-    # plot_meff_order_convergence_minimal_sensitivity(plot_rs=[1.0, 2.0])
-    # plot_meff_order_convergence_minimal_sensitivity(plot_rs=[1.0, 2.0, 3.0, 4.0])
-
-    # plot_meff_order_convergence(plot_rs=[1.0, 2.0, 3.0, 4.0, 5.0])
-    # plot_meff_order_convergence(plot_rs=[3.0])
-    # plot_meff_order_convergence(plot_rs=[1.0, 2.0, 6.0])
-    # plot_meff_order_convergence(plot_rs=[0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
+    println("\nFinal estimates for m*/m:")
+    for (rs, meff) in sort(collect(meff_estimates))
+        println("rs = $rs:\tm/m* ≈ $meff")
+    end
 end
