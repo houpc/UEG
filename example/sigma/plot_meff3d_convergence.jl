@@ -60,18 +60,12 @@ const fixed_lambda_optima_3d = Dict(
 
 # For combined plot, rₛ ↦ λ*(rₛ), d = 3
 const fixed_lambda_comparisons_3d = Dict(
-    # 1.0 => 5.0,
-    # 2.0 => 3.0,
-    # 3.0 => 1.875,
-    # 4.0 => 1.75,
-    # 5.0 => 1.375,
-    ###
     1.0 => 6.5,
     2.0 => 3.5,
     3.0 => 2.25,
-    4.0 => 1.75,
-    # 5.0 => 1.375,
-    5.0 => 1.5,
+    # 4.0 => 1.75,
+    4.0 => 2.0,
+    5.0 => 1.75,
     6.0 => 1.0,
 )
 # Two lambda points to plot for convergence tests
@@ -79,22 +73,12 @@ const fixed_lambda_comparisons_3d = Dict(
 # NOTE: At rs = 5, λ* itself is the largest calculated λ, so we compare with smaller λ = 0.875
 const lambdas_meff_convergence_plot_3d = Dict(
     # 0.5 => [3.5, 5.0],
-    # 1.0 => [1.75],
-    # 1.0 => [1.75, 2.0],
-    # 1.0 => [5.0],
-    # 1.0 => [5.0, 1.75, 8.0],
-    1.0 => [3.5, 5.0, 6.5, 8.0],
-    # 1.0 => [5.0, 4.0, 6.0, 6.5, 8.0],
+    1.0 => [1.75, 3.5, 5.0, 6.5, 8.0],
     2.0 => [2.0, 2.5, 3.0, 3.5],
-    # 3.0 => [1.5, 1.75, 2.0, 2.5],
     3.0 => [1.5, 1.75, 1.875, 2.0, 2.25],
-    # 3.0 => [1.5, 1.75, 1.875, 2.0, 2.25],
-    # 4.0 => [1.25, 1.5, 1.75, 2.0],
-    4.0 => [1.25, 1.375, 1.5, 1.625, 1.75],
-    # 4.0 => [1.125, 1.5],
-    # 5.0 => [1.125, 0.875],
-    5.0 => [1.125, 1.25, 1.375, 1.5],
-    # 6.0 => [1.0, 0.75, 1.25],
+    4.0 => [1.375, 1.5, 1.625, 1.75, 2.0],
+    # 4.0 => [1.25, 1.375, 1.5, 1.625, 1.75],
+    5.0 => [1.125, 1.25, 1.375, 1.5, 1.75],
     # 6.0 => [0.75, 1.0, 1.25],
 )
 
@@ -125,11 +109,6 @@ const lambdas_meff_upper_bounds_3d = Dict(
     # 4.0 => ...,
     # 5.0 => ...,
     # 6.0 => ...,
-)
-
-const lambdas_meff_convergence_minimal_sensitivity_plot_3d = Dict(
-    1.0 => [5.0, 4.0, 6.0],
-    2.0 => [2.5, 2.0, 3.0, 3.5],
 )
 
 function get_local_minima(a)
@@ -280,31 +259,11 @@ function load_from_dlm(filename; mass2=mass2, rs=rs[1], beta=beta[1], sortby="or
     end
 end
 
-function plot_all_order_convergence(meff_estimates; beta=beta[1])
+function plot_cancellation_convergence(meff_estimates; beta=beta[1])
     plot_rs = [1.0, 5.0]
-    # plot_rs = [1.0, 2.0]
     num_rs = length(plot_rs)
     @assert num_rs == 2 "plot_rs must be a 2-element array"
     plot_lambda = [fixed_lambda_optima_3d[rs] for rs in plot_rs]
-
-    # figure(figsize=(4, 4 * num_rs))
-    figure(figsize=(4, 4 * num_rs))
-    label_locs = [(4.4, 1.075), (1.4, 0.975), (1.975, 1.025)]
-    # label_locs = [(4.4, 1.1125), (1.4, 0.935), (1.975, 1.02)]
-    # label_locs = [(2.2, 1.0825), (1.5, 0.9425), (1.85, 1.0275)]
-    labels = [
-        # "\$1 + \\partial_{\\xi_k} \\text{Re}\\Sigma(k, 0) \\big|_{k = k_F}\$",
-        "\$D\$",
-        "\$Z\$",
-        "\$m / m^* = Z \\cdot D\$",
-    ]
-    # label_locs = [(1.0, 0.875), (3.8, 1.055), (2.6, 0.925)]
-    # labels = [
-    #     "\$(1 + \\delta m)^{-1}\$",
-    #     "\$(1 - \\delta s)\$",
-    #     "\$m^* / m\$",
-    #     # "\$(1 + \\delta m)\$",
-    # ]
 
     # Helper function to plot a single subplot
     function plot_at_rs(i, rs, lambda; ax0=nothing)
@@ -313,18 +272,22 @@ function plot_all_order_convergence(meff_estimates; beta=beta[1])
         else
             ax = plt.subplot(num_rs, 1, i, sharex=ax0)
         end
+        # Z, D, and m/m* ≈ Z * D
         filenames = [
             dispersion_ratio_dk_filename,
             zfactor_filename,
             inverse_meff_dk_filename,
-            # inverse_dispersion_ratio_dk_filename,
-            # zinv_filename,
-            # meff_dk_filename,
         ]
         colors = [
             cdict["red"],
             cdict["blue"],
             "black",
+        ]
+        label_locs = [(4.4, 1.075), (1.4, 0.975), (1.975, 1.025)]
+        labels = [
+            "\$D\$",
+            "\$Z\$",
+            "\$m / m^* = Z \\cdot D\$",
         ]
         for (j, (filename, color)) in enumerate(zip(filenames, colors))
             means, errors, lambda = load_from_dlm(filename, lambda; rs=rs)
@@ -352,6 +315,7 @@ function plot_all_order_convergence(meff_estimates; beta=beta[1])
             end
             if j == 3
                 # Error in final m/m* estimate is obtained from combined approaches
+                # TODO: actually compute meff_inv_estimates, although the result will hardly change
                 error_estimate = (1 / meff_estimates[rs]).err
                 ax.axhspan(
                     yval[end] - error_estimate,
@@ -378,9 +342,10 @@ function plot_all_order_convergence(meff_estimates; beta=beta[1])
         return ax
     end
 
+    figure(figsize=(4, 4 * num_rs))
+
     # first subplot
     ax0 = plot_at_rs(1, plot_rs[1], plot_lambda[1])
-    # ax0.set_ylim(0.85, 1.1)
     plt.setp(ax0.get_xticklabels(), visible=false)  # use shared x-axis
 
     # second subplot
@@ -395,7 +360,98 @@ function plot_all_order_convergence(meff_estimates; beta=beta[1])
     plt.subplots_adjust(hspace=0.0)
 
     plt.savefig("meff$(dim)d_cancellations_vs_N.pdf")
-    # plt.savefig("meff$(dim)d_rs$(plot_rs)_beta$(beta)$(modestr)_with_cancellations_vs_N.pdf")
+end
+
+function plot_regular_vs_inverse_convergence_comparisons(meff_estimates; beta=beta[1])
+    rs = 1.0
+    lambda = fixed_lambda_optima_3d[rs]
+    fig, ax = plt.subplots(; figsize=(4, 4))
+
+    # (regular) Z, D, and m/m* ≈ Z * D
+    # (inverse) Z ≈ 1 / Z⁻¹, D ≈ 1 / D⁻¹, and m/m* ≈ 1 / (Z⁻¹ * D⁻¹)
+    filenames = [
+        inverse_meff_dk_filename,
+        meff_dk_filename,
+        dispersion_ratio_dk_filename,
+        inverse_dispersion_ratio_dk_filename,
+        zfactor_filename,
+        zinv_filename,
+    ]
+    zorders = [
+        4, 3, 2, 1, 6, 5,
+    ]
+    colors = [
+        "black",
+        cdict["grey"],
+        cdict["red"],
+        cdict["orange"],
+        cdict["blue"],
+        cdict["teal"],
+    ]
+    labels = [
+        "\${m}/{m^*} = Z \\cdot D\$",
+        "\${m}/{m^*} = {1}/({Z^{-1} \\cdot D^{-1}})\$",
+        "\$D\$",
+        "\$1 / D^{-1}\$",
+        "\$Z\$",
+        "\$1 / Z^{-1}\$",
+    ]
+    for (j, (filename, color, zorder)) in enumerate(zip(filenames, colors, zorders))
+        invert = iseven(j)
+        means, errors, lambda = load_from_dlm(filename, lambda; rs=rs)
+        valid_means = collect(skipmissing(means))
+        valid_errors = collect(skipmissing(errors))
+        x = collect(eachindex(valid_means))
+        if invert
+            inv_ymeas = measurement.(valid_means, valid_errors)
+            ymeas = 1 ./ inv_ymeas
+            yval = Measurements.value.(ymeas)
+            yerr = Measurements.uncertainty.(ymeas)
+        else
+            yval = valid_means
+            yerr = valid_errors
+        end
+        println(lambda)
+        println(x)
+        println(yval)
+        println(yerr)
+        ax.errorbar(
+            x,
+            yval;
+            yerr=yerr,
+            color=color,
+            capsize=4,
+            fmt="o--",
+            zorder=zorder,
+            label=labels[j],
+        )
+        if j in [1, 2]
+            # Error in final m/m* estimate is obtained from combined approaches
+            # TODO: actually compute meff_inv_estimates when invert == false, although the result will hardly change
+            error_estimate = (1 / meff_estimates[rs]).err
+            # ax.axhspan(
+            #     yval[end] - error_estimate,
+            #     yval[end] + error_estimate;
+            #     color=cdict["grey"],
+            #     zorder=3,
+            # )
+            # ax.axhline(yval[end]; linestyle="--", color="dimgrey", zorder=4)
+            meff_estimate = measurement(yval[end], error_estimate)
+            typestr = invert ? "(inverse)" : "(regular)"
+            println("$typestr rs = $rs, λ = $lambda:\tm/m* ≈ $meff_estimate, $yval")
+        end
+    end
+    xy_loc = (1.2, 0.96)
+    ax.set_ylim(0.94, 1.16)
+    # xy_loc = (1.2, 0.915)
+    # ax.set_ylim(0.89, 1.16)
+    ax.annotate("\$r_s = $(Int(round(rs)))\$", xy=xy_loc, xycoords="data", fontsize=14)
+    ax.set_xticks(collect(1:order[1]))
+    ax.legend(; loc="upper left", fontsize=10)
+    # ax.legend(; title="\$r_s = $(Int(rs))\$", loc="upper left", fontsize=10, ncol=2, columnspacing=0.5)
+    ax.set_xlabel("Perturbation order \$N\$")
+    plt.tight_layout()
+    fig.savefig("meff$(dim)d_regular_and_inverse_comparisons_vs_N_rs=$(Int(round(rs))).pdf")
 end
 
 function plot_meff_order_convergence_minimal_sensitivity(;
@@ -404,7 +460,7 @@ function plot_meff_order_convergence_minimal_sensitivity(;
     plot_rs=range(1.0, 6.0),
 )
     pick_extrema = Dict(
-        1.0 => [missing, 1, 2, 1, 8, 1],
+        1.0 => [missing, 1, 2, 1, 4, 1],
         2.0 => [missing, 1, 2, 1, 2, 1],
     )
     pick_indices = Dict(
@@ -507,7 +563,7 @@ function plot_meff_order_convergence_minimal_sensitivity(;
     end
     # ylim(0.978, 1.002)
     tight_layout()
-    savefig("meff$(dim)d_rs$(plot_rs)_beta$(beta)$(modestr)_minimal_sensitivity_vs_N.pdf")
+    savefig("meff$(dim)d_beta$(beta)$(modestr)_minimal_sensitivity_vs_N.pdf")
 end
 
 function plot_meff_order_convergence(;
@@ -586,7 +642,7 @@ function plot_meff_order_convergence(;
     # ylim(0.963, 1.003)
     # ylim(0.978, 1.002)
     tight_layout()
-    savefig("meff$(dim)d_rs$(plot_rs)_beta$(beta)$(modestr)_vs_N.pdf")
+    savefig("meff$(dim)d_beta$(beta)$(modestr)_vs_N.pdf")
 end
 
 function plot_combined_order_convergence(;
@@ -750,7 +806,7 @@ function plot_combined_order_convergence(;
         legend(; title="\$r_s = $(rs)\$", loc="upper right", fontsize=12)
     end
     tight_layout()
-    savefig("meff$(dim)d_rs$(plot_rs)_beta$(beta)$(modestr)_minimal_sensitivity_vs_N.pdf")
+    savefig("meff$(dim)d_beta$(beta)$(modestr)_minimal_sensitivity_vs_N.pdf")
     return meff_estimates
 end
 
@@ -858,6 +914,7 @@ function plot_meff_lambda_convergence(maxOrder=order[1]; rs=rs[1], beta=beta[1])
                 xloc = 5.6
                 yloc = 0.93
                 ylim(0.86, 1.005)
+                # ylim(0.945, 0.955)
                 # text(
                 #     1.0,
                 #     0.855,
@@ -925,8 +982,10 @@ end
 
 if abspath(PROGRAM_FILE) == @__FILE__
     meff_estimates = plot_combined_order_convergence(plot_rs=[1.0, 2.0, 3.0, 4.0, 5.0])
-    plot_meff_order_convergence(plot_rs=[1.0, 2.0, 3.0, 4.0, 5.0])
-    plot_all_order_convergence(meff_estimates)
+    plot_regular_vs_inverse_convergence_comparisons(meff_estimates)
+    plot_cancellation_convergence(meff_estimates)
+    # plot_meff_order_convergence(plot_rs=[1.0, 2.0, 3.0, 4.0, 5.0])
+    plot_meff_order_convergence(plot_rs=[1.0])
     plot_meff_lambda_convergence()
     println("\nFinal estimates for m*/m:")
     for (rs, meff) in sort(collect(meff_estimates))

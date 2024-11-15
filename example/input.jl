@@ -3,8 +3,8 @@ include("lambda_scans.jl")
 dim = 3      # dimension of the problem
 rs = [1.0]
 order = [6]                         # maximum diagram order for Σ diagrams (K and dK missions)
-# mass2 = rs_to_lambdas[dim][order[1]][rs[1]]
-mass2 = [3.5]
+mass2 = rs_to_lambdas[dim][order[1]][rs[1]]
+# mass2 = [1.75]
 
 Fs = [-0.0]        # Fermi liquid parameter with zero angular momentum
 beta = [40.0]      # inverse temperature beta = β*E_F 
