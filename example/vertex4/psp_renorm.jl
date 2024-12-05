@@ -7,7 +7,7 @@ const dmstar2 = [0.971212 ± 3.6e-5 - 1.0, -0.013191 ± 3.4e-5, -0.006643 ± 3.8
 const dmstar3 = [0.978121 ± 3.4e-5 - 1.0, -0.01011 ± 3.3e-5, -0.007079 ± 3.8e-5, -0.002236 ± 5.7e-5, 0.00094 ± 0.00012]
 const dmstar4 = [0.977115 ± 3.9e-5 - 1.0, -0.006129 ± 3.9e-5, -0.005259 ± 5.1e-5, 0.000533 ± 9.1e-5, 0.00322 ± 0.00024]
 
-function load_mstar(rs, lam; fname="/media/iintsjds/File/Research/JuliaLibs/UniElectronGas.jl/run/meff_3d_eachorder.dat")
+function load_mstar(rs, lam; fname="/media/iintsjds/File/Research/JuliaLibs/UniElectronGas.jl/run/meff_3d_eachorder.dat", verbose=0)
     mdata = readdlm(fname)
     # println(size(mdata))
     # println(mdata)
@@ -30,7 +30,10 @@ function load_mstar(rs, lam; fname="/media/iintsjds/File/Research/JuliaLibs/UniE
             return dmstar
         end
     end
-    println("mstar not found for rs=$rs, lam=$lam, using bare mass instead!")
+    if verbose > 0
+        println("mstar not found for rs=$rs, lam=$lam, using bare mass instead!")
+    end
+
     bm = zeros(Measurement, 5)
     bm[1] = 1.0
     return bm
@@ -58,8 +61,19 @@ function shift_u(u, wc1, wc2)
     return u ./ (1 .+ u .* log(wc1 / wc2))#, uerr ./ (1 .+ u .* log(wc1 / wc2)) .^ 2
 end
 
+# function shift_u_single(u, wc1, wc2)
+#     # shift u from wc1 to wc2
+#     println(u, wc1, wc2)
+#     println(log(wc1 / wc2))
+#     l = log(wc1 / wc2)
+#     println(typeof(l))
+#     println(typeof(u))
+#     println(u / (1 + u * l))
+#     return u / (1 + u * log(wc1 / wc2))#, uerr ./ (1 .+ u .* log(wc1 / wc2)) .^ 2
+# end
+
 # Πs returns dimensionless projected pp propagator
-function Πs(para; ω_c=0.1)
+function Πs(para; ω_c=0.1 + 0.0im)
     # 0.882 comes from the continuous approximation of mat-freq summation
     return log(0.882 * ω_c * para.beta)
     # return log(ω_c * para.beta)
@@ -127,8 +141,10 @@ function Un(Γlist4, Π, n, dmstar)
     return -result
 end
 
-function Γ2U(Γlist, dmstar, para; ω_c=0.1)
-    println(para.EF, para.beta, para.β)
+function Γ2U(Γlist, dmstar, para; ω_c=0.1 + 0.0im, verbose=0)
+    if verbose > 0
+        println(para.EF, para.beta, para.β)
+    end
     # Γlist .= -Γlist
     # Γlist = [(-1)^i * Γlist[i] for i in 1:length(Γlist)]
     Π = Πs(para; ω_c=ω_c)
@@ -141,45 +157,55 @@ function load_gamma0(rs, mass2, beta, order;
     isDynamic=false, isFock=false,
     ω_c=0.1,
     filename="data_ver4PP_parqAD.jld2",
-    filelist=[filename,])
+    filelist=[filename,],
+    verbose=0)
 
     dmstar, mstar = mstar_info(rs, mass2)
     resultlist = [zeros(Measurement, order) for f in filelist]
     # for fname in filelist
     for fi in 1:length(filelist)
         fname = filelist[fi]
-        println("fname=$fname")
+        if verbose > 0
+            println("fname=$fname")
+        end
         f = jldopen(fname, "r")
         # println(keys(f))
         # results_s, results_a = Any[], Any[]
-        result = zeros(Measurement, order)
+        result = zeros(Complex{Measurement{Float64}}, order)
         _F = Fs
         _rs = rs
         para = ParaMC(rs=_rs, beta=beta, Fs=_F, order=order, mass2=mass2, isDynamic=isDynamic, isFock=isFock, dim=dim, spin=spin)
         # println("NF=$(para.NF)")
-        # println("$para")
+        println("$para")
         kF = para.kF
-        println(keys(f))
+        if verbose > 0
+            println(keys(f))
+        end
         for key in keys(f)
             loadpara = ParaMC(key)
             if UEG.paraid(loadpara) == UEG.paraid(para)
-                println(UEG.paraid(para))
+                if verbose > 0
+                    println(UEG.paraid(para))
+                end
                 data_Fs, data_Fa = UniElectronGas.getVer4PHl(para, fname)
                 # data_uu, data_ud = (data_Fs + data_Fa), (data_Fs - data_Fa)
-                result .= Γ2U([real(data_Fs[o][1, 1] - 3 * data_Fa[o][1, 1]) for o in 1:order], dmstar, para; ω_c=ω_c)
+                # result .= Γ2U([real(data_Fs[o][1, 1] - 3 * data_Fa[o][1, 1]) for o in 1:order], dmstar, para; ω_c=ω_c)
+                result .= Γ2U([(data_Fs[o][1, 1] - 3 * data_Fa[o][1, 1]) for o in 1:order], dmstar, para; ω_c=ω_c)
                 # return Γ2U([real(data_Fs[o][1, 1] + 3 * data_Fa[o][1, 1]) for o in 1:_order], para; ω_c=ω_c)
             end
         end
         for i in 2:length(result)
             result[i] = shift_u(result[i], ω_c, ω_c * mstar[i-1])
         end
-        println("result=$result")
+        if verbose > 0
+            println("result=$result")
+        end
         # push!(resultlist, result)
-        resultlist[fi] .= result
+        resultlist[fi] .= real.(result)
     end
     validresults = [r for r in resultlist if sum(r) != 0]
     weights = [1 / (Measurements.uncertainty(r[end]))^2 for r in validresults]
-    if length(validresults) > 1
+    if length(validresults) > 1 && verbose > 0
         println("multiple results!")
         println(validresults)
         println(weights)
@@ -191,9 +217,45 @@ function load_gamma0(rs, mass2, beta, order;
     return finalresult
 end
 
+function load_gamma3_cooper(rs, mass2, beta, order, thetalist;
+    dim=3, spin=2,
+    Fs=-0.0,
+    isDynamic=false, isFock=false,
+    ω_c=0.1,
+    filename="data_ver4PP_parqAD.jld2",
+    filelist=[filename,],
+    verbose=0)
+    # load gamma0 data, and shift the result to the desired log ratio
+    # then return the gamma3 series with the same shift
+    # assuming the singular gamma3=1-mu*log
+
+    uc = load_gamma0(rs, mass2, beta, order; dim=dim, spin=spin, Fs=Fs, isDynamic=isDynamic, isFock=isFock, ω_c=ω_c, filename=filename, filelist=filelist, verbose=verbose)
+    uconverged = uc[end]
+
+    converged = zeros(Measurement, length(thetalist))
+    uthetalist = [zeros(Measurement, order) for i in 1:length(thetalist)]
+    for i in 1:length(thetalist)
+        theta = thetalist[i]
+        q = sqrt(2 + 2 * cos(theta)) / 4 / π
+        ratio = im * sqrt(((ω_c^2 + q^2)) / (q^2 + 1 / 40^2))
+        # wtheta = sqrt(((2 * 0.882)^2 * ω_c^2) / (q^2 + 4 / beta^2) / (ω_c^2 + q^2))
+        wtheta = sqrt(ω_c^2 + q^2) / ratio
+        utheta = load_gamma0(rs, mass2, beta, order; dim=dim, spin=spin, Fs=Fs, isDynamic=isDynamic, isFock=isFock, ω_c=wtheta, filename=filename, filelist=filelist, verbose=verbose)
+        converged[i] = real(1 / (1 + uconverged * log(0.882 * ratio)))
+        uthetalist[i] .= real(1 .- utheta .* log(0.882 * ratio))
+    end
+    return converged, uthetalist
+end
+
 if abspath(PROGRAM_FILE) == @__FILE__
     # m1 = load_mstar(1.0, 3.5)
     # println(m1)
-    uc1 = load_gamma0(1.0, 3.5, 25, 6; ω_c=0.1, filename="/media/iintsjds/File/Research/JuliaLibs/UniElectronGas.jl/run/kunshan/data_ver4PP_parqAD_rs1.jld2")
-    println(uc1)
+    # thetalist = [i / 16 * π for i in 12:16]
+    thetalist = [i / 4 * π for i in 0:4]
+    # uc1 = load_gamma0(1.0, 3.5, 25, 6; ω_c=0.1, filename="/media/iintsjds/File/Research/JuliaLibs/UniElectronGas.jl/run/kunshan/data_ver4PP_parqAD_rs1.jld2")
+    # println(uc1)
+    converged, uthetalist = load_gamma3_cooper(4.0, 1.0, 25, 6, thetalist; ω_c=0.1, filename="/media/iintsjds/File/Research/JuliaLibs/UniElectronGas.jl/run/kunshan/data_ver4PP_parqAD_rs4.jld2")
+    println(converged)
+    println(uthetalist)
+    println(converged .+ [-v[end] for v in uthetalist])
 end

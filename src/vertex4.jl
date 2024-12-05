@@ -7,31 +7,39 @@ function ver4_PH(para; kamp=[para.kF,], kamp2=kamp, n=[-1, 0, 0, -1], ell=[0,],
     return ver4, result
 end
 
-function getVer4PHl(para, filename; parafile="para_wn_1minus0.csv", root_dir=@__DIR__)
+function getVer4PHl(para, filename; parafile="para_wn_1minus0.csv", root_dir=@__DIR__, verbose=0)
     local _mu, _zinv
     try
-        println("try loading order=$(para.order-1)")
+        if verbose > 0
+            println("try loading order=$(para.order)")
+        end
         para1 = UEG.ParaMC(rs=para.rs, beta=para.beta, Fs=para.Fs, Fa=-0.0, order=para.order - 1, dim=para.dim,
             mass2=para.mass2, isDynamic=para.isDynamic, isFock=para.isFock)
         _mu, _zinv = CounterTerm.getSigma(para1, parafile=parafile, root_dir=root_dir)
-        println("end loading order=$(para.order-1)")
+        if verbose > 0
+            println("end loading order=$(para.order-1)")
+        end
     catch e
-        println("error caught")
-        # if isa(e, LoadError)
-        println("sigma data for order=$(para.order-1) not found, trying higher order")
+        if verbose > 0
+            println("error caught")
+            println("sigma data for order=$(para.order-1) not found, trying higher order")
+        end
         try
             para1 = UEG.ParaMC(rs=para.rs, beta=para.beta, Fs=para.Fs, Fa=-0.0, order=para.order, dim=para.dim,
                 mass2=para.mass2, isDynamic=para.isDynamic, isFock=para.isFock)
             _mu, _zinv = CounterTerm.getSigma(para1, parafile=parafile, root_dir=root_dir)
         catch e
-            println("error caught")
-            # if isa(e, LoadError)
-            println("sigma data for order=$(para.order) not found, trying higher order")
+            if verbose > 0
+                println("error caught")
+                println("sigma data for order=$(para.order) not found, trying higher order")
+            end
             para1 = UEG.ParaMC(rs=para.rs, beta=para.beta, Fs=para.Fs, Fa=-0.0, order=para.order + 1, dim=para.dim,
                 mass2=para.mass2, isDynamic=para.isDynamic, isFock=para.isFock)
             _mu, _zinv = CounterTerm.getSigma(para1, parafile=parafile, root_dir=root_dir)
         end
-        println("end loading order=$(para.order)")
+        if verbose > 0
+            println("end loading order=$(para.order)")
+        end
         # end
     end
     dzinv, dmu, dz = CounterTerm.sigmaCT(para.order - 1, _mu, _zinv)

@@ -15,13 +15,14 @@ spin = 2
 # rs = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
 # rs = [1.0, 2.0, 3.0]
 # rs = [1.0,]
-rs = [2.0,]
-# rs = [5.0,]
+rs = [6.0,]
+# rs = [3.0, 4.0, 5.0]
 # mass2 = [0.5,]
 # mass2 = [1e-3,]
 # mass2 = [3.5,]
-mass2 = [2.0,]
+mass2 = [0.75,]
 # mass2 = [5.0,]
+# mass2 = [1.0, 1.5,]
 # mass2 = [1.5, 2.5,]
 # mass2 = [6.0, 8.0, 10.0, 12.0, 14.0]
 # mass2 = [10.5, 11.0]
@@ -63,8 +64,8 @@ if abspath(PROGRAM_FILE) == @__FILE__
     end
 
     f = jldopen(filename, "r")
-    results_s, results_a = Any[], Any[]
     for (irs, _mass2, _beta, _order) in Iterators.product([i for i in 1:length(rs)], mass2, beta, order)
+        results_sum, results_ea = Any[], Any[]
         _F = Fs[irs]
         _rs = rs[irs]
         para = ParaMC(rs=_rs, beta=_beta, Fs=_F, order=_order, mass2=_mass2, isDynamic=isDynamic, isFock=isFock, dim=dim, spin=spin)
@@ -89,22 +90,29 @@ if abspath(PROGRAM_FILE) == @__FILE__
                         # ud = [sum(real(data_ud[o][1, 1, iq, inq]) for oi in 1:o) for o in 1:_order]
                         # push!(results_s, append!(Any[_rs, _beta, _mass2, _order, iq], [sum(real(data_uu[o][ik, 1]) for oi in 1:o) for o in 1:_order]))
                         # push!(results_a, append!(Any[_rs, _beta, _mass2, _order, iq], [sum(real(data_ud[o][ik, 1]) for oi in 1:o) for o in 1:_order]))
-                        push!(results_s, append!(Any[_rs, _beta, _mass2, _order, iq], uu .+ ud))
+                        push!(results_sum, append!(Any[_rs, _beta, _mass2, _order, iq], uu .+ ud))
+                        uu = [sum(real(data_uu[oi][1, 1, iq, inq]) * (1)^(oi) for oi in o:o) for o in 1:_order]
+                        ud = [sum(real(data_ud[oi][1, 1, iq, inq]) * (1)^(oi) for oi in o:o) for o in 1:_order]
+                        push!(results_ea, append!(Any[_rs, _beta, _mass2, _order, iq], uu .+ ud))
                     end
                 end
                 # push!(results_s, append!(Any[_rs, _beta, _mass2, _order, 0], [(real(data_Fs[o][1, 1])) for o in 1:_order]))
                 # push!(results_a, append!(Any[_rs, _beta, _mass2, _order, 0], [(real(data_Fa[o][1, 1])) for o in 1:_order]))
             end
         end
-    end
-    println(results_s)
-    if isSave
-        open(savefilename, "a+") do io
-
-            writedlm(io, results_s)
+        println(results_sum)
+        if isSave
+            savefname = "./ver3_$(dim)d_rs$(_rs)beta$(_beta)lam$(_mass2)o$(_order).dat"
+            open(savefname, "w") do io
+                writedlm(io, results_sum)
+            end
+            savefname2 = "./ver3_$(dim)d_rs$(_rs)beta$(_beta)lam$(_mass2)o$(_order)_eachorder.dat"
+            open(savefname2, "w") do io
+                writedlm(io, results_ea)
+            end
+            # open(savefilename2, "a+") do io
+            #     writedlm(io, results_a)
+            # end
         end
-        # open(savefilename2, "a+") do io
-        #     writedlm(io, results_a)
-        # end
     end
 end

@@ -44,6 +44,12 @@ function rpa_from_rs(rs; Fs=0.0, Fa=0.0)
     return (2uu - ud) / 2, (-ud) / 2
 end
 
+function mapsp_from_rs(rs; Fs=0.0, Fa=0.0)
+    para = UEG.ParaMC(rs=rs, beta=1000, Fs=Fs, Fa=Fa, mass2=1e-6, isDynamic=true)
+    k0, ks = para.kF, para.qTF
+    return ks^2 / 8 / k0^2 * log((ks^2 + 4k0^2) / ks^2)
+end
+
 function shift_u(u, wc1, wc2)
     # shift u from wc1 to wc2
     return u ./ (1 .+ u .* log(wc1 / wc2))#, uerr ./ (1 .+ u .* log(wc1 / wc2)) .^ 2
@@ -57,8 +63,8 @@ if abspath(PROGRAM_FILE) == @__FILE__
     rslist = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
     # fslist = [-0.20862,]
     # falist = [-0.17529,]
-    fslist = -0.2 .* rslist
-    # fslist = -0.0 .* rslist
+    # fslist = -0.2 .* rslist
+    fslist = -0.0 .* rslist
     falist = -0.0 .* rslist
     # rslist = [0.25, 0.5, 1.0, 2.0, 3.0, 4.0, 5.7, 6.4, 5 * 1.6]
     # rslist = [1, 2, 4, 5, 6, 10, 3.5]
@@ -70,9 +76,10 @@ if abspath(PROGRAM_FILE) == @__FILE__
     for i in 1:length(rslist)
         rs = rslist[i]
         uclist[i], mulist[i] = rpa_from_rs(rs; Fs=fslist[i], Fa=falist[i])
-        para = UEG.ParaMC(rs=rs, beta=1000, Fs=fslist[i], Fa=falist[i], mass2=1e-6, isDynamic=true)
+        para = UEG.ParaMC(rs=rs, beta=1000, Fs=fslist[i], Fa=falist[i], mass2=1e-9, isDynamic=true)
         # wplist[i] = para.basic.ωp / para.basic.EF
-        wplist[i] = para.NFstar * para.rs
+        # wplist[i] = para.NFstar * para.rs
+        wplist[i] = mapsp_from_rs(rs; Fs=fslist[i], Fa=falist[i])
         # para = UEG.ParaMC(rs=rs, beta=100, Fs=0.0, mass2=1e-6, isDynamic=true)
         # uu = -2 * PP_interaction_dynamic(0, para) + 2 * PP_interaction_dynamic(1, para)
         # ud = -PP_interaction_dynamic(0, para) * 2
